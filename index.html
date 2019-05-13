@@ -1,0 +1,469 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Plastic Or Planet</title>
+    <link rel="Shortcut Icon" type="image/x-icon" href="img/favicon.ico" />
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: black;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="myCanvas" width="1080" height="540"></canvas>
+
+    <script>
+        // JavaScript code goes here
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+
+        var counttime;
+        var gamestate;//0=startscreen,1=trans,2=ingame,3=iend
+        var fishspacetime;//60/45/36/30
+
+        var buttonStatus = false;
+        var buttonUpStatus = false;
+        var buttonDownStatus = false;
+        var buttonRightStatus = false;
+        var buttonLeftStatus = false;
+
+        var fishwhatsize=[0,0,0,0];
+        var fishpositionx=[0,0,0,0];
+        var fishpositiony=[0,0,0,0];
+        var fishstate=0;//1~4
+        var fishcount;
+        var bubblex=0,bubbley=0;
+        var i;
+
+        var first = true;
+        var plasticspositionx, plasticspositiony;
+        var flag=true;
+
+        //var fishpositionx;
+        //var fishpositiony;
+        var iend;
+
+        var Simg1 = new Image();
+        Simg1.src = 'img/S1.png';
+        var Simg2 = new Image();
+        Simg2.src = 'img/S2.png';
+        var Simg3 = new Image();
+        Simg3.src = 'img/S3.png';
+        var Simg4 = new Image();
+        Simg4.src = 'img/S4.png';
+        var Simg5 = new Image();
+        Simg5.src = 'img/S5.png';
+        var Simg6 = new Image();
+        Simg6.src = 'img/S6.png';
+        var trans1 = new Image();
+        trans1.src = 'img/trans1.png';
+        var trans2 = new Image();
+        trans2.src = 'img/trans2.png';
+        var plastic = new Image();
+        plastic.src = 'img/plastic.png';
+        var fish1 = new Image();
+        fish1.src = 'img/fish1.png';
+        var fish2 = new Image();
+        fish2.src = 'img/fish2.png';
+        var fish3 = new Image();
+        fish3.src = 'img/fish3.png';
+        var fish4 = new Image();
+        fish4.src = 'img/fish4.png';
+        var no = new Image();
+        no.src = 'img/prenos.png';
+        var notex = new Image();
+        notex.src = 'img/pretext.png';
+        var bubble = new Image();
+        bubble.src = 'img/bubblebig.png';
+        var Eimg1 = new Image();
+        Eimg1.src = 'img/end1.png';
+        var Eimg2 = new Image();
+        Eimg2.src = 'img/end2.png';
+        var Eimg3 = new Image();
+        Eimg3.src = 'img/end3.png';
+        var Eimg4 = new Image();
+        Eimg4.src = 'img/end4.png';
+        var Eimg5 = new Image();
+        Eimg5.src = 'img/end5.png';
+
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+        function keyDownHandler(e) {
+            if (e.key == "Up" || e.key == "ArrowUp" || e.key == 'w' || e.key == 'W') {
+                buttonUpStatus = true;
+            }
+            else if (e.key == "Down" || e.key == "ArrowDown" || e.key == 's' || e.key == 'S') {
+                buttonDownStatus = true;
+            }
+            else if (e.key == "Right" || e.key == "ArrowRight" || e.key == 'd' || e.key == 'D') {
+                buttonRightStatus = true;
+            }
+            else if (e.key == "Left" || e.key == "ArrowLeft" || e.key == 'a' || e.key == 'A') {
+                buttonLeftStatus = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key == "Up" || e.key == "ArrowUp" || e.key == 'w' || e.key == 'W') {
+                buttonUpStatus = false;
+            }
+            else if (e.key == "Down" || e.key == "ArrowDown" || e.key == 's' || e.key == 'S') {
+                buttonDownStatus = false;
+            }
+            else if (e.key == "Right" || e.key == "ArrowRight" || e.key == 'd' || e.key == 'D') {
+                buttonRightStatus = false;
+            }
+            else if (e.key == "Left" || e.key == "ArrowLeft" || e.key == 'a' || e.key == 'A') {
+                buttonLeftStatus = false;
+            }
+        }
+
+        function move_plastic(dir){
+            switch (dir) {
+                case 0:
+                    break;
+                case 72:
+                    plasticspositiony-=5;
+                    break;
+                case 80:
+                    plasticspositiony+=5;
+                    break;
+                case 75:
+                    plasticspositionx+=5;
+                    break;
+                case 77:
+                    plasticspositionx-=5;
+                    break;
+            }
+            if (plasticspositionx < 0)plasticspositionx = 0;
+            if (plasticspositionx > 999)plasticspositionx = 999; //120-9(width)
+            if (plasticspositiony < 0)plasticspositiony = 0;
+            if (plasticspositiony > 441)plasticspositiony = 441;   //60-11(height)
+        }
+
+        function generate_fish()
+        {
+            var fishnum,fishwidth;
+            if(counttime%fishspacetime==0){
+                fishnum=Math.floor(Math.random() * 4) ;
+                switch(fishwhatsize[fishnum]){
+                    case 0:
+                        fishpositiony[fishnum]=108*(fishnum+1)-fish1.height/2;
+                        break;
+                    case 1:
+                        fishpositiony[fishnum]=108*(fishnum+1)-fish2.height/2;
+                        break;
+                    case 2:
+                        fishpositiony[fishnum]=108*(fishnum+1)-fish3.height/2;
+                        break;
+                    case 3:
+                        fishpositiony[fishnum]=108*(fishnum+1)-fish4.height/2;
+                        break;
+                } 
+                fishpositionx[fishnum]-=5;
+            }
+            for(i=0;i<4;i++){
+                if(fishpositionx[i]!=canvas.width){
+                    fishpositionx[i]-=5;
+                    switch(fishwhatsize[i]){
+                        case 0:
+                            fishwidth=fish1.width;
+                            break;
+                        case 1:
+                            fishwidth=fish2.width;
+                            break;
+                        case 2:
+                            fishwidth=fish3.width;
+                            break;
+                        case 3:
+                            fishwidth=fish4.width;
+                            break;
+                    } 
+                    if(fishpositionx[i]<-fishwidth){
+                        fishwhatsize[i]=fishstate-1;
+                        fishpositionx[i]=canvas.width;
+                        fishcount++;
+                        if(fishcount>4){
+                            fishcount=0;
+                            fishstate++;
+                            fishspacetime=180/(fishstate+3);
+                            //fishspacetime = 180;
+                        }
+                        if(fishstate>4)fishstate=4;
+                    }
+                }
+            }
+        }
+
+        function isalive()
+        {
+            var fishwidth,fishheight;
+            for(i=0;i<4;i++){
+                switch(fishwhatsize[i]){
+                    case 0:
+                        fishwidth=fish1.width;
+                        fishheight=fish1.height;
+                        break;
+                    case 1:
+                        fishwidth=fish2.width;
+                        fishheight=fish2.height;
+                        break;
+                    case 2:
+                        fishwidth=fish3.width;
+                        fishheight=fish3.height;
+                        break;
+                    case 3:
+                        fishwidth=fish4.width;
+                        fishheight=fish4.height;
+                        break;
+                } 
+                if((plasticspositionx+plastic.width-9)>=fishpositionx[i]+9 && 
+                (plasticspositionx+9)<=(fishpositionx[i]+fishwidth/2) &&
+                (plasticspositiony+plastic.height-9)>=(fishpositiony[i]+ fishheight/3+9) &&
+                (plasticspositiony+9)<=(fishpositiony[i]+ fishheight/3*2))return false;
+            }
+            return true;
+        }
+
+        function bubbleact(){     
+            bubbley-=5;
+            if(bubbley<-bubble.height){
+                bubbley=canvas.height;
+                bubblex=Math.floor(Math.random() * canvas.height)-canvas.height;
+            }
+        }
+
+        function print_game() {  
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(bubble, bubblex, bubbley);
+            ctx.drawImage(plastic, plasticspositionx, plasticspositiony);
+            for(i=0;i<4;i++)   
+                switch(fishwhatsize[i]){
+                    case 0:
+                        ctx.drawImage(fish1,fishpositionx[i],fishpositiony[i]);
+                        break;
+                    case 1:
+                        ctx.drawImage(fish2,fishpositionx[i],fishpositiony[i]);
+                        break;
+                    case 2:
+                        ctx.drawImage(fish3,fishpositionx[i],fishpositiony[i]);
+                        break;
+                    case 3:
+                        ctx.drawImage(fish4,fishpositionx[i],fishpositiony[i]);
+                        break;
+                } 
+        }
+
+        function initvalue() {
+            plasticspositionx = 657;
+            plasticspositiony = 378;
+            bubblex=0;
+            bubbley=0;
+
+            for(i=0;i<4;i++){
+                fishwhatsize[i]=0;
+                fishpositionx[i]=canvas.width;
+                fishpositiony[i]=canvas.height;
+            }
+            fishcount = 0;
+            fishstate = 1;
+            fishspacetime=60;
+            counttime = 0;
+            first = true;
+            iend = 0;
+        }
+
+        initvalue();
+        gamestate = 0;
+
+        function draw() {
+            // drawing code
+
+            buttonStatus = buttonUpStatus || buttonDownStatus || buttonRightStatus || buttonLeftStatus;
+            var dir;
+            
+            counttime++;
+            if (counttime >= 180) {
+                counttime = 0;
+            }
+            switch (gamestate) {
+                case 0: //startscreen
+                    switch (counttime / 30) {
+                        case 0:
+                            ctx.drawImage(Simg1, 0, 0);
+                            break;
+                        case 1:
+                            ctx.drawImage(Simg2, 0, 0);
+                            break;
+                        case 2:
+                            ctx.drawImage(Simg3, 0, 0);
+                            break;
+                        case 3:
+                            ctx.drawImage(Simg4, 0, 0);
+                            break;
+                        case 4:
+                            ctx.drawImage(Simg5, 0, 0);
+                            break;
+                        case 5:
+                            ctx.drawImage(Simg6, 0, 0);
+                            first = false;
+                            break;
+                    }
+                    if (first == false && buttonStatus) {       ////buttonUpStatus||buttonDownStatus||buttonRightStatus||buttonLeftStatus
+                        gamestate = 1;
+                    }
+                    break;
+                case 1://trans
+                    if (iend == 0)iend = canvas.height+1;
+                    iend -= 5;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (iend > -350) {
+                        switch (3) {
+                            case 0:
+                                ctx.drawImage(Simg1, 0, 0);
+                                break;
+                            case 1:
+                                ctx.drawImage(Simg2, 0, 0);
+                                break;
+                            case 2:
+                                ctx.drawImage(Simg3, 0, 0);
+                                break;
+                            case 3:
+                                ctx.drawImage(Simg4, 0, 0);
+                                break;
+                            case 4:
+                                ctx.drawImage(Simg5, 0, 0);
+                                break;
+                            case 5:
+                                ctx.drawImage(Simg6, 0, 0);
+                                break;
+                        }
+                    }
+
+                    if (iend > -trans1.height) {
+                        ctx.drawImage(trans1, 0, iend);
+                        ctx.drawImage(trans2, 30, iend + 300);
+                    }
+                        
+                    if (iend < trans1.height *0.6) ctx.drawImage(plastic, plasticspositionx, plasticspositiony);
+
+                    if (iend < 270) {
+                        if (plasticspositionx > 414) plasticspositionx -= 1;
+                        if (plasticspositiony > 225) plasticspositiony -= 2;
+                    }
+                    if (iend < -270)
+                        if (fishpositionx[0] > 513) fishpositionx[0] -= 4.2;
+
+                    ctx.drawImage(fish2, fishpositionx[0], 270 - fish2.height / 2);
+
+                    if (iend < -trans1.height) {
+                        iend = 0;
+                        gamestate = 2;
+                    }
+                    break;
+                case 2://gamerule
+                    if (iend <= 30) {
+                        ctx.drawImage(no, 378, 108);
+                        iend++;
+                    }
+                    if (iend > 30) {
+                        if ((counttime / 30) <= 4)
+                            ctx.drawImage(notex, 153, 360);
+                        if ((counttime / 30) > 4) {
+                            ctx.clearRect(153, 360, notex.width, notex.height);
+                            ctx.drawImage(no, 378, 108);
+                        }
+                        if (buttonStatus) {
+                            gamestate = 3;
+                            initvalue();
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        }
+                    }
+        
+                    break;
+                case 3://gameplaying
+                    if(buttonUpStatus)dir=72;
+                    if(buttonDownStatus)dir=80;
+                    if(buttonRightStatus)dir=75;
+                    if(buttonLeftStatus)dir=77;
+        
+                    move_plastic(dir);
+                    generate_fish();
+                    bubbleact();
+                    print_game();
+        
+                    if (!isalive()) {
+                        gamestate = 4;
+                        counttime = 0;
+                    }
+                    break;
+                case 4://gameover
+                    switch (Math.floor(counttime / 30)) {
+                        case 0:
+                            ctx.drawImage(Eimg1, 0, 0);
+                            break;
+                        case 1:
+                            ctx.drawImage(Eimg2, 0, 0);
+                            break;
+                        case 2:
+                            ctx.drawImage(Eimg3, 0, 0);
+                            break;
+                        case 3:
+                            ctx.drawImage(Eimg4, 0, 0);
+                            break;
+                        case 4:
+                            ctx.drawImage(Eimg5, 0, 0);
+                            break;
+                        case 5:
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            gamestate=0;
+                            initvalue();
+                            break;
+                    }
+                    break;
+            //    case 5:
+            //        if (iend == 0){
+            //            iend = 71;
+            //        }
+            //        iend -= 3;
+            //        if (iend > -IMG_TRANS11_HEIGHT){
+            //            vga.blitwmask((byte*)img_trans11_data, (byte*)img_trans11m_data, IMG_TRANS11_WIDTH, IMG_TRANS11_HEIGHT, 0, iend + 10);
+            //        }
+            //        if (iend > -60 && iend < 70 - IMG_TRANS11_HEIGHT) {
+            //            vga.fillrect(0, iend + 35, 120, 30, 3);
+            //            vga.fillrect(0, iend + 65, 120, 3, 0);
+            //            vga.fillrect(0, iend + 68, 120, 3, 3);
+            //            vga.fillrect(0, iend + 71, 120, 2, 0);
+            //            vga.fillrect(0, iend + 73, 120, 2, 3);
+            //            vga.fillrect(0, iend + 75, 120, 1, 0);
+            //            vga.fillrect(0, iend + 76, 120, 1, 3);
+            //            vga.fillrect(0, iend + 77, 120, 3, 0);
+            //        }
+            //        if (iend > -IMG_TRANS2_HEIGHT) {
+            //            vga.blitwmask((byte*)img_trans2_data, (byte*)img_trans2m_data, IMG_TRANS2_WIDTH, IMG_TRANS2_HEIGHT, 0, iend + 10);
+            //        }
+            //        for (var i = 0; i < 4; i++)vga.blit((byte*)img_2030_data[i], IMG_2030_WIDTH, IMG_2030_HEIGHT, 25 + 19 * i, iend);
+            //        if (iend < -124) {
+            //          iend = 0;
+            //          gamestate = 0;
+            //          first=true;
+            //        }
+            //break;
+        }
+
+        }
+        setInterval(draw, 20);
+    </script>
+
+</body>
+</html>
